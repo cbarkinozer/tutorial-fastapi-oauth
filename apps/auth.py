@@ -60,11 +60,11 @@ async def auth(request: Request):
         user_data = access_token["userinfo"]
     except OAuthError:
         raise CREDENTIALS_EXCEPTION
-    if valid_email_from_db(user_data['email']):
+    if await valid_email_from_db(user_data['email']):
         return JSONResponse({
             'result': True,
-            'access_token': create_token(user_data['email']),
-            'refresh_token': create_refresh_token(user_data['email']),
+            'access_token': await create_token(user_data['email']),
+            'refresh_token': await create_refresh_token(user_data['email']),
         })
     raise CREDENTIALS_EXCEPTION
 
@@ -77,16 +77,16 @@ async def refresh(request: Request):
             form = await request.json()
             if form.get('grant_type') == 'refresh_token':
                 token = form.get('refresh_token')
-                payload = decode_token(token)
+                payload = await decode_token(token)
                 # Check if token is not expired
                 expire_date = datetime.fromtimestamp(payload.get('exp')).strftime("%Y-%m-%d %H:%M:%S")
                 now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
                 if expire_date > now:
                     email = payload.get('sub')
                     # Validate email
-                    if valid_email_from_db(email):
+                    if await valid_email_from_db(email):
                         # Create and return token
-                        return JSONResponse({'result': True, 'access_token': create_token(email)})
+                        return JSONResponse({'result': True, 'access_token': await create_token(email)})
     except Exception:
         raise CREDENTIALS_EXCEPTION
     raise CREDENTIALS_EXCEPTION

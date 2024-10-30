@@ -4,11 +4,12 @@ from fastapi import FastAPI
 from fastapi import Request
 from fastapi.responses import HTMLResponse
 from fastapi.responses import JSONResponse
+import asyncio
 
 from apps.api import api_app
 from apps.auth import auth_app
 from apps.db import add_blacklist_token
-from apps.db import init_blacklist_file
+from apps.db import init_blacklist_db
 from apps.jwt import CREDENTIALS_EXCEPTION
 from apps.jwt import get_current_user_token
 
@@ -23,8 +24,8 @@ async def root():
 
 
 @app.get('/logout')
-def logout(token: str = Depends(get_current_user_token)):
-    if add_blacklist_token(token):
+async def logout(token: str = Depends(get_current_user_token)):
+    if await add_blacklist_token(token):
         return JSONResponse({'result': True})
     print("main.py:/logout. add_blacklist_token(token) return False")
     raise CREDENTIALS_EXCEPTION
@@ -106,5 +107,5 @@ async def token(request: Request):
 
 
 if __name__ == '__main__':
-    init_blacklist_file()
+    asyncio.run(init_blacklist_db())
     uvicorn.run(app, port=7000)
