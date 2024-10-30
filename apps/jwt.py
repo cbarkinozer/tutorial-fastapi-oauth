@@ -1,18 +1,19 @@
 import os
-from datetime import datetime
-from datetime import timedelta
+import datetime
 
 import jwt
 from fastapi import Depends
 from fastapi import HTTPException
 from fastapi import status
 from fastapi.security import OAuth2PasswordBearer
+from dotenv import load_dotenv
 
 from apps.db import is_token_blacklisted
 
-# Create a fake db:
+# Create a fake db (UPDATE TO YOUR TEST USER)
 FAKE_DB = {'guillermo.paoletti@gmail.com': {'name': 'Guillermo Paoletti'}}
 
+load_dotenv()
 
 # Helper to read numbers using var envs
 def cast_to_number(id):
@@ -26,10 +27,10 @@ def cast_to_number(id):
 
 
 # Configuration
-API_SECRET_KEY = os.environ.get('API_SECRET_KEY') or None
+API_SECRET_KEY = os.getenv('API_SECRET_KEY') or None
 if API_SECRET_KEY is None:
     raise BaseException('Missing API_SECRET_KEY env var.')
-API_ALGORITHM = os.environ.get('API_ALGORITHM') or 'HS256'
+API_ALGORITHM = os.getenv('API_ALGORITHM') or 'HS256'
 API_ACCESS_TOKEN_EXPIRE_MINUTES = cast_to_number('API_ACCESS_TOKEN_EXPIRE_MINUTES') or 15
 REFRESH_TOKEN_EXPIRE_MINUTES = 60 * 24 * 30
 
@@ -45,25 +46,25 @@ CREDENTIALS_EXCEPTION = HTTPException(
 
 
 # Create token internal function
-def create_access_token(*, data: dict, expires_delta: timedelta = None):
+def create_access_token(*, data: dict, expires_delta: datetime.timedelta = None):
     to_encode = data.copy()
     if expires_delta:
-        expire = datetime.utcnow() + expires_delta
+        expire = datetime.datetime.now(datetime.timezone.utc) + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(minutes=15)
+        expire = datetime.now(datetime.timezone.utc) + datetime.timedelta(minutes=15)
     to_encode.update({'exp': expire})
     encoded_jwt = jwt.encode(to_encode, API_SECRET_KEY, algorithm=API_ALGORITHM)
     return encoded_jwt
 
 
 def create_refresh_token(email):
-    expires = timedelta(minutes=REFRESH_TOKEN_EXPIRE_MINUTES)
+    expires = datetime.timedelta(minutes=REFRESH_TOKEN_EXPIRE_MINUTES)
     return create_access_token(data={'sub': email}, expires_delta=expires)
 
 
 # Create token for an email
 def create_token(email):
-    access_token_expires = timedelta(minutes=API_ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token_expires = datetime.timedelta(minutes=API_ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(data={'sub': email}, expires_delta=access_token_expires)
     return access_token
 
@@ -78,18 +79,22 @@ def decode_token(token):
 
 async def get_current_user_email(token: str = Depends(oauth2_scheme)):
     if is_token_blacklisted(token):
+        print("jwt.py:get_current_user_email(). is_token_blacklisted(token) return True")
         raise CREDENTIALS_EXCEPTION
     try:
         payload = decode_token(token)
         email: str = payload.get('sub')
         if email is None:
+            print("jwt.py:get_current_user_email(). email is None")
             raise CREDENTIALS_EXCEPTION
     except jwt.PyJWTError:
+        print("jwt.py:get_current_user_email. jwt.PyJWTError is thrown")
         raise CREDENTIALS_EXCEPTION
 
     if valid_email_from_db(email):
         return email
 
+    print("jwt.py:get_current_user_email. valid_email_from_db(email) is False")
     raise CREDENTIALS_EXCEPTION
 
 

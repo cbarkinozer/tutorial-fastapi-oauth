@@ -12,10 +12,11 @@ This is an example following the tutorials:
 - Activate the virtualenv `. .venv/bin/activate`
 - Install the requirements `pip install -r requirements.txt`
 - Set up the env vars:
-    - export GOOGLE_CLIENT_ID=...
-    - export GOOGLE_CLIENT_SECRET=...
-    - export SECRET_KEY=...
-    - export API_SECRET_KEY=...
+    * GOOGLE_CLIENT_ID=***
+    * GOOGLE_CLIENT_SECRET=***
+    * SECRET_KEY=**
+    * API_SECRET_KEY=**
+    * REDIRECT_URI=http://127.0.0.1:7000/token
 - Run the app:
     - Guide 1: `python run.py`
     - Guide 2 and 3: `python main.py`

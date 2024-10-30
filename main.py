@@ -26,6 +26,7 @@ async def root():
 def logout(token: str = Depends(get_current_user_token)):
     if add_blacklist_token(token):
         return JSONResponse({'result': True})
+    print("main.py:/logout. add_blacklist_token(token) return False")
     raise CREDENTIALS_EXCEPTION
 
 
