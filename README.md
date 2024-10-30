@@ -1,4 +1,21 @@
 # FastAPI and Google Login (OAuth)
+
+# My Changes on Hanchon's
+- All made async
+- Fake DB changed with real async sqlalchemy db
+- Packages are updated
+- deprecated function calls updated
+- ratelimiting example added
+- .env added instead of env vars
+
+Note: Do not forget to add users.json to initialize db.  
+The content should be like this:
+```json
+{
+    "*@gmail.com": {"name": "*"}
+}
+```
+
 This is an example following the tutorials:
 - [Guide 1 - Google OAuth Login with FastAPI](https://blog.hanchon.live/guides/google-login-with-fastapi/)
 - [Guide 2 - Google OAuth and FastAPI JWT](https://blog.hanchon.live/guides/google-login-with-fastapi-and-jwt/)
